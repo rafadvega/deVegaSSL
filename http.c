@@ -99,62 +99,53 @@ int http_get(int connection, const char *path, const char *host,
     return 0;
 }
 
-int parse_proxy_param( char *proxy_spec,
-            char **proxy_host,
-            int *proxy_port,
-            char **proxy_user,
-            char **proxy_password )
-{
-  char *login_sep, *colon_sep, *trailer_sep;
-  // Technically, the user should start the proxy spec with
-  // "http://". But, be forgiving if he didn't.
-  if ( !strncmp( "http://", proxy_spec, 7 ) )
-  {
-   proxy_spec += 7;
-  } 
-  login_sep = strchr( proxy_spec, '@' );
- 
-  if ( login_sep )
-  {
-    colon_sep = strchr( proxy_spec, ':' );
-    if ( !colon_sep || ( colon_sep > login_sep ) )
-    {
-      // Error - if username supplied, password must be supplied.
-      fprintf( stderr, "Expected password in '%s'\n", proxy_spec );
-      return 0;
+int parse_proxy_param(char *proxy_spec,
+        char **proxy_host,
+        int *proxy_port,
+        char **proxy_user,
+        char **proxy_password) {
+    char *login_sep, *colon_sep, *trailer_sep;
+    // Technically, the user should start the proxy spec with
+    // "http://". But, be forgiving if he didn't.
+    if (!strncmp("http://", proxy_spec, 7)) {
+        proxy_spec += 7;
     }
-    *colon_sep = '\0';
-    *proxy_user = proxy_spec;
-    *login_sep = '\0';
-    *proxy_password = colon_sep + 1;
-    proxy_spec = login_sep + 1;
-  }
-  // If the user added a "/" on the end (as they sometimes do),
-  // just ignore it.
-  trailer_sep = strchr( proxy_spec, '/' );
-  if ( trailer_sep )
-  {
-    *trailer_sep = '\0';
-  }
+    login_sep = strchr(proxy_spec, '@');
 
-  colon_sep = strchr( proxy_spec, ':' );
-  if ( colon_sep )
-  {
-    // non-standard proxy port
-    *colon_sep = '\0';
-    *proxy_host = proxy_spec;
-    *proxy_port = atoi( colon_sep + 1 );
-    if ( *proxy_port == 0 )
-    {
-     return 0;
+    if (login_sep) {
+        colon_sep = strchr(proxy_spec, ':');
+        if (!colon_sep || (colon_sep > login_sep)) {
+            // Error - if username supplied, password must be supplied.
+            fprintf(stderr, "Expected password in '%s'\n", proxy_spec);
+            return 0;
+        }
+        *colon_sep = '\0';
+        *proxy_user = proxy_spec;
+        *login_sep = '\0';
+        *proxy_password = colon_sep + 1;
+        proxy_spec = login_sep + 1;
     }
-  }
-  else
-  { 
-    *proxy_port = HTTP_PORT;
-    *proxy_host = proxy_spec;
-  }
-  return 1;
+    // If the user added a "/" on the end (as they sometimes do),
+    // just ignore it.
+    trailer_sep = strchr(proxy_spec, '/');
+    if (trailer_sep) {
+        *trailer_sep = '\0';
+    }
+
+    colon_sep = strchr(proxy_spec, ':');
+    if (colon_sep) {
+        // non-standard proxy port
+        *colon_sep = '\0';
+        *proxy_host = proxy_spec;
+        *proxy_port = atoi(colon_sep + 1);
+        if (*proxy_port == 0) {
+            return 0;
+        }
+    } else {
+        *proxy_port = HTTP_PORT;
+        *proxy_host = proxy_spec;
+    }
+    return 1;
 }
 
 /*
@@ -183,7 +174,7 @@ int main(int argc, char *argv[]) {
     if (!strcmp("-p", argv[ ind ])) {
         if (!parse_proxy_param(argv[ ++ind ], &proxy_host, &proxy_port,
                 &proxy_user, &proxy_password)) {
-            fprintf(stderr, "Error - malformed proxy parameter '%s'.\n", argv[ 2 ]);
+            fprintf(stderr, "Error - malformed proxy parameter '%s'.\n", argv[2]);
             return 2;
         }
         ind++;
@@ -207,7 +198,6 @@ int main(int argc, char *argv[]) {
         printf("Connecting to host '%s'\n", proxy_host);
         host_name = gethostbyname(proxy_host);
     }
-
     else {
         host_name = gethostbyname(host);
     }
